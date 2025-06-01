@@ -16,17 +16,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bison flex perl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 克隆并 checkout v2.7.0 tag
-RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA && \
-    cd /opt/ViennaRNA && \
-    git checkout tags/v2.7.0 -b v2.7.0
+RUN apt-get update && apt-get install -y wget && \
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda && \
+    rm Miniconda3-latest-Linux-x86_64.sh
 
-# 构建与安装
-RUN mkdir /opt/ViennaRNA/build
-RUN cd /opt/ViennaRNA/build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
-RUN cd /opt/ViennaRNA/build && make -j$(nproc)
-RUN cd /opt/ViennaRNA/build && make install
-RUN rm -rf /opt/ViennaRNA
+ENV PATH="/opt/conda/bin:$PATH"
+
+RUN conda config --add channels defaults && \
+    conda config --add channels bioconda && \
+    conda config --add channels conda-forge && \
+    conda config --set channel_priority strict && \
+    conda install -y viennarna
 
 # 清理源码
 RUN rm -rf /opt/ViennaRNA
