@@ -51,7 +51,7 @@ RUN pip install --no-cache-dir \
     matplotlib \
     wandb \
     scikit-learn \
-    networkx<3.0 \
+    "networkx<3.0" \
     ipywidgets
 
 # ✅ 仍使用 Datahub 默认启动方式（start-notebook.sh）
