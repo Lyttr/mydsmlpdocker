@@ -23,15 +23,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bison flex perl \
     autoconf automake libtool \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# 安装 RNAfold (ViennaRNA)
-RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA && \
-    cd /opt/ViennaRNA && \
-    autoreconf -i && \
+RUN curl -LO https://www.tbi.univie.ac.at/RNA/download/sourcecode/2_6_x/ViennaRNA-2.6.4.tar.gz && \
+    tar -xzf ViennaRNA-2.6.4.tar.gz && \
+    cd ViennaRNA-2.6.4 && \
     ./configure --prefix=/usr/local && \
     make -j$(nproc) && \
     make install && \
-    cd / && rm -rf /opt/ViennaRNA
+    cd / && rm -rf ViennaRNA-2.6.4*
 
 # 3) install packages using notebook user
 USER jovyan
