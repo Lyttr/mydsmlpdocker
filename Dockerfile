@@ -4,15 +4,25 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV CUDA_HOME=/usr/local/cuda
 
-# 安装系统依赖 + RNAfold
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-dev \
     git git-lfs \
     wget curl unzip nano vim tmux htop \
     build-essential \
     libgl1-mesa-glx \
-    vienna-rna \
+    autoconf automake libtool pkg-config libgsl-dev zlib1g-dev cmake \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 编译安装 ViennaRNA（包含 RNAfold）
+RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA \
+    && cd /opt/ViennaRNA \
+    && git checkout v2.6.4 \
+    && mkdir build && cd build \
+    && cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local \
+    && make -j"$(nproc)" \
+    && make install \
+    && cd / && rm -rf /opt/ViennaRNA
 
 # 设置 python/pip 默认指向 python3
 RUN ln -sf /usr/bin/python3 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
