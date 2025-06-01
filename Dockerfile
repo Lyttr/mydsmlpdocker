@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1
 ENV CUDA_HOME=/usr/local/cuda
 
 
-# 安装构建 RNAfold 所需依赖（CMake 版本）
+# 安装系统依赖（包括构建 ViennaRNA 所需）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-dev \
     git git-lfs \
@@ -16,15 +16,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bison flex perl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 下载并使用 CMake 构建最新版 RNAfold
-RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA && \
-    cd /opt/ViennaRNA && \
-    git checkout v2.7.1 && \
-    mkdir build && cd build && \
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local && \
-    make -j$(nproc) && \
-    make install && \
-    cd / && rm -rf /opt/ViennaRNA
+# 克隆指定版本的 ViennaRNA 源码
+RUN git clone --branch v2.7.2 https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA
+
+# 创建构建目录
+RUN mkdir /opt/ViennaRNA/build
+
+# 执行 CMake 配置（你可以在 GitHub Actions 日志中看到它是否成功）
+RUN cd /opt/ViennaRNA/build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+
+# 编译（make）
+RUN cd /opt/ViennaRNA/build && make -j$(nproc)
+
+# 安装到系统
+RUN cd /opt/ViennaRNA/build && make install
+
+# 清理源码
+RUN rm -rf /opt/ViennaRNA
 
 # 设置 python/pip 默认指向 python3
 RUN ln -sf /usr/bin/python3 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
