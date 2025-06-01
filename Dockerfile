@@ -1,26 +1,44 @@
-# 1) choose base container
-# generally use the most recent tag
+FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 
-# base notebook, contains Jupyter and relevant tools
-# See https://github.com/ucsd-ets/datahub-docker-stack/wiki/Stable-Tag 
-# for a list of the most current containers we maintain
-ARG BASE_CONTAINER=ghcr.io/ucsd-ets/datascience-notebook:stable
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV CUDA_HOME=/usr/local/cuda
 
-FROM $BASE_CONTAINER
+# 安装系统依赖 + RNAfold
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip python3-dev \
+    git git-lfs \
+    wget curl unzip nano vim tmux htop \
+    build-essential \
+    libgl1-mesa-glx \
+    vienna-rna \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-LABEL maintainer="UC San Diego ITS/ETS <ets-consult@ucsd.edu>"
+# 设置 python/pip 默认指向 python3
+RUN ln -sf /usr/bin/python3 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
 
-# 2) change to root to install packages
-USER root
+# 安装 PyTorch + CUDA 11.7 版本
+RUN pip install --upgrade pip && pip install \
+    torch==2.0.1 \
+    torchvision==0.15.2 \
+    "networkx<3.0" \
+    --extra-index-url https://download.pytorch.org/whl/cu117
 
-RUN apt-get -y install htop
+# 安装 DeepSpeed + Lightning 等依赖
+RUN pip install \
+    pytorch-lightning==1.9.5 \
+    deepspeed==0.16.7 \
+    torchmetrics==0.11.4 \
+    numpy \
+    pandas \
+    sentencepiece \
+    tqdm \
+    matplotlib \
+    wandb \
+    scikit-learn \
+    jupyterlab \
+    ipywidgets \
+    notebook
 
-# 3) install packages using notebook user
-USER jovyan
+WORKDIR /
 
-# RUN conda install -y scikit-learn
-
-RUN pip install --no-cache-dir networkx scipy
-
-# Override command to disable running jupyter notebook at launch
-# CMD ["/bin/bash"]
