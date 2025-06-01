@@ -15,9 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake pkg-config libgsl-dev zlib1g-dev \
     bison flex perl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# 克隆指定版本的 ViennaRNA 源码
-RUN git clone --branch v2.7.2 https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA
+# 2. 克隆 ViennaRNA 最新源码（main 分支）
+RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA
 
 # 创建构建目录
 RUN mkdir /opt/ViennaRNA/build
