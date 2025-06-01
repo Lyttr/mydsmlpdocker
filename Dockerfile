@@ -29,8 +29,6 @@ RUN conda config --add channels defaults && \
     conda config --set channel_priority strict && \
     conda install -y viennarna
 
-# 清理源码
-RUN rm -rf /opt/ViennaRNA
 
 # 设置 python/pip 默认指向 python3
 RUN ln -sf /usr/bin/python3 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
