@@ -16,18 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bison flex perl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y wget && \
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
-    bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda && \
-    rm Miniconda3-latest-Linux-x86_64.sh
 
-ENV PATH="/opt/conda/bin:$PATH"
-
-RUN conda config --add channels defaults && \
-    conda config --add channels bioconda && \
-    conda config --add channels conda-forge && \
-    conda config --set channel_priority strict && \
-    conda install -y viennarna
 
 
 # 设置 python/pip 默认指向 python3
