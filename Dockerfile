@@ -5,21 +5,23 @@ ENV PYTHONUNBUFFERED=1
 ENV CUDA_HOME=/usr/local/cuda
 
 
+# 安装构建 RNAfold 所需依赖（CMake 版本）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-dev \
     git git-lfs \
     wget curl unzip nano vim tmux htop \
     build-essential \
     libgl1-mesa-glx \
-    autoconf automake libtool pkg-config libgsl-dev zlib1g-dev \
-    bison flex perl python3-distutils \
+    cmake pkg-config libgsl-dev zlib1g-dev \
+    bison flex perl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 下载并使用 autotools 构建 ViennaRNA（不要使用 cmake）
+# 下载并使用 CMake 构建最新版 RNAfold
 RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA && \
     cd /opt/ViennaRNA && \
-    git checkout v2.6.4 && \
-    ./configure --prefix=/usr/local && \
+    git checkout v2.7.1 && \
+    mkdir build && cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local && \
     make -j$(nproc) && \
     make install && \
     cd / && rm -rf /opt/ViennaRNA
