@@ -15,20 +15,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake pkg-config libgsl-dev zlib1g-dev \
     bison flex perl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-# 2. 克隆 ViennaRNA 最新源码（main 分支）
-RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA
-
-# 创建构建目录
-RUN mkdir /opt/ViennaRNA/build
-
-# 执行 CMake 配置（你可以在 GitHub Actions 日志中看到它是否成功）
-RUN cd /opt/ViennaRNA/build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
-
-# 编译（make）
-RUN cd /opt/ViennaRNA/build && make -j$(nproc)
-
-# 安装到系统
-RUN cd /opt/ViennaRNA/build && make install
+RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA && \
+    cd /opt/ViennaRNA && \
+    ./autogen.sh && \
+    ./configure --prefix=/usr/local && \
+    make -j$(nproc) && \
+    make install
 
 # 清理源码
 RUN rm -rf /opt/ViennaRNA
