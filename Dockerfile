@@ -12,8 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget curl unzip nano vim tmux htop \
     build-essential \
     libgl1-mesa-glx \
-    cmake pkg-config libgsl-dev zlib1g-dev \
+    libgsl-dev zlib1g-dev \
     bison flex perl \
+    autoconf automake libtool \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA && \
     cd /opt/ViennaRNA && \
