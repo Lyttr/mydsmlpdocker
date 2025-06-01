@@ -1,49 +1,59 @@
-FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
+# 1) choose base container
+# generally use the most recent tag
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
-ENV CUDA_HOME=/usr/local/cuda
+# base notebook, contains Jupyter and relevant tools
+# See https://github.com/ucsd-ets/datahub-docker-stack/wiki/Stable-Tag 
+# for a list of the most current containers we maintain
+ARG BASE_CONTAINER=ucsdets/datahub-base-notebook:2023.2-stable
 
+FROM $BASE_CONTAINER
 
-# 安装构建依赖
+LABEL maintainer="UC San Diego ITS/ETS <ets-consult@ucsd.edu>"
+
+# 2) change to root to install packages
+USER root
+
+# 安装系统依赖（含 RNAfold 构建工具）
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-dev \
     git git-lfs \
     wget curl unzip nano vim tmux htop \
     build-essential \
     libgl1-mesa-glx \
     cmake pkg-config libgsl-dev zlib1g-dev \
     bison flex perl \
+    autoconf automake libtool \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# 安装 RNAfold (ViennaRNA)
+RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA && \
+    cd /opt/ViennaRNA && \
+    autoreconf -i && \
+    ./configure --prefix=/usr/local && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && rm -rf /opt/ViennaRNA
 
+# 3) install packages using notebook user
+USER jovyan
 
-
-# 设置 python/pip 默认指向 python3
-RUN ln -sf /usr/bin/python3 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
-
-# 安装 PyTorch + CUDA 11.7 版本
+# 安装 PyTorch + CUDA 11.7
 RUN pip install --upgrade pip && pip install \
     torch==2.0.1 \
     torchvision==0.15.2 \
-    "networkx<3.0" \
     --extra-index-url https://download.pytorch.org/whl/cu117
 
-# 安装 DeepSpeed + Lightning 等依赖
-RUN pip install \
+# 安装 Python 库（含 DeepSpeed, Lightning 等）
+RUN pip install --no-cache-dir \
     pytorch-lightning==1.9.5 \
     deepspeed==0.16.7 \
     torchmetrics==0.11.4 \
-    numpy \
-    pandas \
+    numpy pandas \
     sentencepiece \
     tqdm \
     matplotlib \
     wandb \
     scikit-learn \
-    jupyterlab \
-    ipywidgets \
-    notebook
+    networkx<3.0 \
+    ipywidgets
 
-WORKDIR /
-
+# ✅ 仍使用 Datahub 默认启动方式（start-notebook.sh）
