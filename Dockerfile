@@ -5,23 +5,28 @@ ENV PYTHONUNBUFFERED=1
 ENV CUDA_HOME=/usr/local/cuda
 
 
-# 安装系统依赖（包括构建 ViennaRNA 所需）
+# 安装构建依赖
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-dev \
     git git-lfs \
     wget curl unzip nano vim tmux htop \
     build-essential \
     libgl1-mesa-glx \
-    libgsl-dev zlib1g-dev \
+    cmake pkg-config libgsl-dev zlib1g-dev \
     bison flex perl \
-    autoconf automake libtool \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 克隆并 checkout v2.7.0 tag
 RUN git clone https://github.com/ViennaRNA/ViennaRNA.git /opt/ViennaRNA && \
     cd /opt/ViennaRNA && \
-    ./autogen.sh && \
-    ./configure --prefix=/usr/local && \
-    make -j$(nproc) && \
-    make install
+    git checkout tags/v2.7.0 -b v2.7.0
+
+# 构建与安装
+RUN mkdir /opt/ViennaRNA/build
+RUN cd /opt/ViennaRNA/build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+RUN cd /opt/ViennaRNA/build && make -j$(nproc)
+RUN cd /opt/ViennaRNA/build && make install
+RUN rm -rf /opt/ViennaRNA
 
 # 清理源码
 RUN rm -rf /opt/ViennaRNA
