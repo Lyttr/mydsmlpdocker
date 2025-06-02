@@ -30,7 +30,13 @@ RUN curl -LO https://www.tbi.univie.ac.at/RNA/download/sourcecode/2_6_x/ViennaRN
     make -j$(nproc) && \
     make install && \
     cd / && rm -rf ViennaRNA-2.6.4*
-
+# 注意这是 root 用户执行
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin && \
+    mv cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600 && \
+    wget https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda-repo-ubuntu2204-11-7-local_11.7.0-515.43.04-1_amd64.deb && \
+    dpkg -i cuda-repo-ubuntu2204-11-7-local_11.7.0-515.43.04-1_amd64.deb && \
+    cp /var/cuda-repo-ubuntu2204-11-7-local/cuda-*-keyring.gpg /usr/share/keyrings/ && \
+    apt-get update && apt-get -y install cuda-toolkit-11-7
 # 3) install packages using notebook user
 USER jovyan
 
